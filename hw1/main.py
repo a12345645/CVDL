@@ -1,5 +1,7 @@
 #coding=utf-8
 import wx
+import cv2 
+import os
 
 class CameraCalibration(wx.Panel):
     def __init__(self,parent):
@@ -43,6 +45,10 @@ class CameraCalibration(wx.Panel):
         folder_chooser.Bind(wx.EVT_BUTTON, self.choose_folder)
         self.lSizer.Add(folder_chooser)
 
+        start = wx.Button(self, label="start")
+        start.Bind(wx.EVT_BUTTON, self.choose_folder)
+        self.lSizer.Add(start)
+
         self.lSizer.Fit(self)
 
 
@@ -50,13 +56,22 @@ class CameraCalibration(wx.Panel):
 
     def choose_folder(self, event):
 
-        folder = wx.DirDialog(self, style=wx.DD_CHANGE_DIR,
+        folder = wx.DirDialog(self, style=wx.DD_CHANGE_DIR,defaultPath= './',
                                 message="choose the folder")
 
         if folder.ShowModal() == wx.ID_OK:
                 folder_path = folder.GetPath()
         folder.Destroy()
         self.folder_address.SetLabel(folder_path)
+
+    def StartCornerDetection():
+        fileDir = r"C:\Test"
+        fileExt = r".txt"
+        [os.path.join(fileDir, _) for _ in os.listdir(fileDir) if _.endswith(fileExt)]
+        
+    def find_chessboard(frame):
+        chessboard_flags = cv2.CALIB_CB_ADAPTIVE_THRESH + cv2.CALIB_CB_FAST_CHECK + cv2.CALIB_CB_NORMALIZE_IMAGE
+        return cv2.findChessboardCorners(chessboard_flags, (9, 6), chessboard_flags)[0] 
 
 if __name__ == '__main__':
     app = wx.App(False)
