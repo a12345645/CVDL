@@ -3,6 +3,8 @@ import wx
 import cv2 
 import os
 
+from wx.core import BitmapDataObject
+
 class CameraCalibration(wx.Panel):
     def __init__(self,parent):
         wx.Panel.__init__(self, parent)
@@ -46,8 +48,11 @@ class CameraCalibration(wx.Panel):
         self.lSizer.Add(folder_chooser)
 
         start = wx.Button(self, label="start")
-        start.Bind(wx.EVT_BUTTON, self.choose_folder)
+        start.Bind(wx.EVT_BUTTON, self.StartCornerDetection)
         self.lSizer.Add(start)
+
+        self.imgSizer = wx.BoxSizer(wx.VERTICAL)
+        self.lSizer.Add(self.imgSizer)
 
         self.lSizer.Fit(self)
 
@@ -64,14 +69,43 @@ class CameraCalibration(wx.Panel):
         folder.Destroy()
         self.folder_address.SetLabel(folder_path)
 
-    def StartCornerDetection():
-        fileDir = r"C:\Test"
-        fileExt = r".txt"
-        [os.path.join(fileDir, _) for _ in os.listdir(fileDir) if _.endswith(fileExt)]
+    def StartCornerDetection(self, event):
+        fileDir = self.folder_address.LabelText
+        fileExt = (r".jpg", r".bmp", r".png", r'jpeg')
+        image_path = [os.path.join(fileDir, _) for _ in os.listdir(fileDir) if _.endswith(fileExt)]
+        print (image_path)
+        for i in image_path:
+            image = cv2.imread(i)
+            self.find_chessboard(image)
+    
+    def find_chessboard(self, img):
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+        # Find the chess board corners
+        ret, corners = cv2.findChessboardCorners(gray, (6, 6), None)
+
+        # Make sure the chess board pattern was found in the image
+        if ret:
+            # Refine the corner position
+            criteria = (cv2.TERM_CRITERIA_MAX_ITER + cv2.TERM_CRITERIA_EPS, 30, 0.001)
+            corners = cv2.cornerSubPix(gray, corners, (11, 11), (-1, -1), criteria)
+            
+
+            # Draw the corners on the image
+            cv2.drawChessboardCorners(img, (6, 6), corners, ret)
         
-    def find_chessboard(frame):
-        chessboard_flags = cv2.CALIB_CB_ADAPTIVE_THRESH + cv2.CALIB_CB_FAST_CHECK + cv2.CALIB_CB_NORMALIZE_IMAGE
-        return cv2.findChessboardCorners(chessboard_flags, (9, 6), chessboard_flags)[0] 
+        # Display the image
+            
+            bm = self.scaled_bitmap(img, 0.2)
+            self.btm = wx.StaticBitmap(self, wx.ID_ANY, bm)
+            self.imgSizer.Add(self.btm)
+            cv2.imshow('chess board', img)
+            cv2.waitKey(500)
+
+    def scaled_bitmap(self, bm, scale):
+        (height, width) = bm.shape[:2]
+        img = wx.BitmapFromBuffer(width, height, bm)
+        return wx.BitmapFromImage(img)
 
 if __name__ == '__main__':
     app = wx.App(False)
