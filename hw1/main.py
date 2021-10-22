@@ -3,6 +3,7 @@ import wx, wx.lib.scrolledpanel
 import cv2 
 import os
 from FindCorners import FindCorners
+from FindIntrinsic import FindIntrinsic
 
 class CameraCalibration(wx.Panel):
 
@@ -27,7 +28,7 @@ class CameraCalibration(wx.Panel):
         boxsizer.Add(corner_detection, flag=wx.LEFT|wx.TOP, border=5)
 
         corner_detection = wx.Button(self, label="1.2 Find Intrinsic ")
-        corner_detection.Bind(wx.EVT_BUTTON, self.CornerDetection)
+        corner_detection.Bind(wx.EVT_BUTTON, self.IntrinsicMatrix)
         boxsizer.Add(corner_detection, flag=wx.LEFT|wx.TOP, border=5)
 
 
@@ -45,6 +46,8 @@ class CameraCalibration(wx.Panel):
 
     def CornerDetection(self, event):
         FindCorners(self, self.lSizer)
+    def IntrinsicMatrix(self, event):
+        FindIntrinsic(self, self.lSizer)
 
 
 if __name__ == '__main__':
