@@ -38,6 +38,13 @@ class CameraCalibration(wx.Panel):
         corner_detection.Bind(wx.EVT_BUTTON, IntrinsicMatrix)
         boxsizer.Add(corner_detection, flag=wx.LEFT|wx.TOP, border=5)
 
+        def ExtrinsicMatrix(event):
+            self.FindExtrinsic()
+
+        corner_detection = wx.Button(self, label="1.2 Find Extrinsic ")
+        corner_detection.Bind(wx.EVT_BUTTON, ExtrinsicMatrix)
+        boxsizer.Add(corner_detection, flag=wx.LEFT|wx.TOP, border=5)
+
         def Distortion(event):
             self.FindDistortion()
 
@@ -84,10 +91,15 @@ class CameraCalibration(wx.Panel):
         def ShowImg(event):
             showSizer.Clear(True)
 
-            img = event.GetEventObject().img
+            img = event.GetEventObject().img.copy()
+            corners2 = event.GetEventObject().corners2
+            ret = event.GetEventObject().ret
+
+            cv2.drawChessboardCorners(img, (11,8), corners2, ret)
+
             img_height, img_width = img.shape[:2]
-            img_height = int(img_height/ 2)
-            img_width = int(img_width/ 2)
+            img_height = int(img_height/ 3)
+            img_width = int(img_width/ 3)
             img = cv2.resize(img, (img_height, img_width), interpolation=cv2.INTER_AREA)
 
             img = cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
@@ -102,7 +114,12 @@ class CameraCalibration(wx.Panel):
 
         for i in self.imgDict.keys():
             btn = wx.Button(self, label=i)
-            btn.img = self.imgDict[i]
+
+            img, corners2, ret = self.imgDict[i]
+            btn.img = img
+            btn.corners2 = corners2
+            btn.ret = ret
+
             btn.Bind(wx.EVT_BUTTON, ShowImg)
             btnSizer.Add(btn)
         self.ldownSizer.Fit(self)
@@ -120,9 +137,22 @@ class CameraCalibration(wx.Panel):
         self.ldownSizer.Fit(self)
         self.Fit()
 
-    def FindDistortion(self):
+    def FindExtrinsic(self):
         self.ldownSizer.Clear(True)
         self.mode = 3
+
+        self.textBox =wx.TextCtrl(parent = self,style = wx.TE_MULTILINE, size = (400,300))
+        self.ldownSizer.Add(self.textBox)
+
+        cv2.FindExtrinsicCameraParams2()
+        # self.textBox.SetLabel('distortion Matrix :' + pprint.pformat(self.dist))
+
+        self.ldownSizer.Fit(self)
+        self.Fit()
+
+    def FindDistortion(self):
+        self.ldownSizer.Clear(True)
+        self.mode = 4
 
         self.textBox =wx.TextCtrl(parent = self,style = wx.TE_MULTILINE, size = (400,300))
         self.ldownSizer.Add(self.textBox)
@@ -131,6 +161,8 @@ class CameraCalibration(wx.Panel):
 
         self.ldownSizer.Fit(self)
         self.Fit()
+
+    
 
     def choose_folder(self, event):
 
@@ -151,7 +183,7 @@ class CameraCalibration(wx.Panel):
             self.FindCorners()
         elif self.mode == 2:
             self.FindIntrinsic()
-        elif self.mode == 3:
+        elif self.mode == 4:
             self.FindDistortion()
 
     def Execute(self):
@@ -179,10 +211,7 @@ class CameraCalibration(wx.Panel):
                 corners2 = cv2.cornerSubPix(gray,corners, (11,11), (-1,-1), criteria)
                 imgpoints.append(corners)
 
-                # Draw and display the corners
-                cv2.drawChessboardCorners(img, (11,8), corners2, ret)
-
                 name = fname.split('/')[-1].split('\\')[-1]
-                self.imgDict[name] = img
+                self.imgDict[name] = (img, corners2, ret)
 
         ret, self.mtx, self.dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
