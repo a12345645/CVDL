@@ -24,12 +24,25 @@ class CameraCalibration(wx.Panel):
         
         boxsizer = wx.StaticBoxSizer(sb, wx.VERTICAL)
 
+        def CornerDetection(event):
+            self.FindCorners()
+
         corner_detection = wx.Button(self, label="1.1 Find Corners ")
-        corner_detection.Bind(wx.EVT_BUTTON, self.CornerDetection)
+        corner_detection.Bind(wx.EVT_BUTTON, CornerDetection)
         boxsizer.Add(corner_detection, flag=wx.LEFT|wx.TOP, border=5)
 
+        def IntrinsicMatrix(event):
+            self.FindIntrinsic()
+
         corner_detection = wx.Button(self, label="1.2 Find Intrinsic ")
-        corner_detection.Bind(wx.EVT_BUTTON, self.IntrinsicMatrix)
+        corner_detection.Bind(wx.EVT_BUTTON, IntrinsicMatrix)
+        boxsizer.Add(corner_detection, flag=wx.LEFT|wx.TOP, border=5)
+
+        def Distortion(event):
+            self.FindDistortion()
+
+        corner_detection = wx.Button(self, label="1.4 Find Distortion  ")
+        corner_detection.Bind(wx.EVT_BUTTON, Distortion)
         boxsizer.Add(corner_detection, flag=wx.LEFT|wx.TOP, border=5)
 
 
@@ -54,12 +67,6 @@ class CameraCalibration(wx.Panel):
 
         self.ldownSizer = wx.BoxSizer(wx.VERTICAL)
         self.lSizer.Add(self.ldownSizer)
-
-
-    def CornerDetection(self, event):
-        self.FindCorners()
-    def IntrinsicMatrix(self, event):
-        self.FindIntrinsic()
 
     def FindCorners(self):
         self.ldownSizer.Clear(True)
@@ -113,6 +120,18 @@ class CameraCalibration(wx.Panel):
         self.ldownSizer.Fit(self)
         self.Fit()
 
+    def FindDistortion(self):
+        self.ldownSizer.Clear(True)
+        self.mode = 3
+
+        self.textBox =wx.TextCtrl(parent = self,style = wx.TE_MULTILINE, size = (400,300))
+        self.ldownSizer.Add(self.textBox)
+
+        self.textBox.SetLabel('distortion Matrix :' + pprint.pformat(self.dist))
+
+        self.ldownSizer.Fit(self)
+        self.Fit()
+
     def choose_folder(self, event):
 
         folder = wx.DirDialog(self, style=wx.DD_CHANGE_DIR,defaultPath= '',
@@ -132,6 +151,8 @@ class CameraCalibration(wx.Panel):
             self.FindCorners()
         elif self.mode == 2:
             self.FindIntrinsic()
+        elif self.mode == 3:
+            self.FindDistortion()
 
     def Execute(self):
         fileExt = (r".jpg", r".bmp", r".png", r'jpeg')
