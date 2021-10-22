@@ -4,12 +4,14 @@ import cv2
 import os
 from FindCorners import FindCorners
 
-from wx.core import BitmapDataObject
-
 class CameraCalibration(wx.Panel):
+
+    
     def __init__(self,parent):
         wx.Panel.__init__(self, parent)
         
+        self.path = ''
+
         self.mainbox = wx.BoxSizer(wx.HORIZONTAL) 
         self.SetSizer(self.mainbox)
 
