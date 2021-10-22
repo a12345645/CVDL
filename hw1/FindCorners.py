@@ -21,8 +21,14 @@ class FindCorners():
         start.Bind(wx.EVT_BUTTON, self.StartCornerDetection)
         self.boxSizer.Add(start, flag=wx.LEFT|wx.TOP, border=5)
 
+        mainSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.boxSizer.Add(mainSizer,flag=wx.LEFT|wx.TOP, border=5)
+
         self.imgSizer = wx.BoxSizer(wx.VERTICAL)
-        self.boxSizer.Add(self.imgSizer,flag=wx.LEFT|wx.TOP, border=5)
+        mainSizer.Add(self.imgSizer,flag=wx.LEFT|wx.TOP, border=5)
+
+        self.showSizer = wx.BoxSizer(wx.HORIZONTAL)
+        mainSizer.Add(self.showSizer,flag=wx.LEFT|wx.TOP, border=5)
 
         self.boxSizer.Fit(self.panel)
         self.panel.Fit()
@@ -36,18 +42,18 @@ class FindCorners():
                                 message="choose the folder")
 
         if folder.ShowModal() == wx.ID_OK:
-                folder_path = folder.GetPath()
+                self.panel.path = folder.GetPath()
         folder.Destroy()
-        self.folder_address.SetLabel(folder_path)
+        self.folder_address.SetLabel(self.panel.path)
 
     def StartCornerDetection(self, event):
         fileDir = self.folder_address.LabelText
         fileExt = (r".jpg", r".bmp", r".png", r'jpeg')
-        self.panel.path = [os.path.join(fileDir, _) for _ in os.listdir(fileDir) if _.endswith(fileExt)]
+        path = [os.path.join(fileDir, _) for _ in os.listdir(fileDir) if _.endswith(fileExt)]
         
         self.imgSizer.Clear(True)
 
-        for i in self.panel.path:
+        for i in path:
             
             self.FindChessboard(i)
         self.panel.Fit()
@@ -74,6 +80,21 @@ class FindCorners():
             self.imgSizer.Fit(self.panel)
         
     def ShowImg(self, event):
+        self.showSizer.Clear(True)
+
         img = event.GetEventObject().img
-        cv2.imshow('chess board', img)
-        cv2.waitKey(500)
+        img_height, img_width = img.shape[:2]
+        img_height = int(img_height/ 2)
+        img_width = int(img_width/ 2)
+        img = cv2.resize(img, (img_height, img_width), interpolation=cv2.INTER_AREA)
+
+        pic = wx.Bitmap.FromBuffer(img_width, img_height, img)
+        
+        bmp =  wx.StaticBitmap(self.panel, -1, pic)
+        self.showSizer.Add(bmp)
+
+        self.showSizer.Fit(self.panel)
+        self.panel.Fit()
+
+        # cv2.imshow('chess board', img)
+        # cv2.waitKey(500)
