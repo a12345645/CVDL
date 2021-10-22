@@ -11,18 +11,18 @@ class FindCorners():
         self.boxSizer.Clear(True)
         
         self.folder_address = wx.StaticText(self.panel,label='')
-        self.boxSizer.Add(self.folder_address, border = 5)
+        self.boxSizer.Add(self.folder_address, flag=wx.TOP, border= 15)
 
         folder_chooser = wx.Button(self.panel, label="choose the folder")
         folder_chooser.Bind(wx.EVT_BUTTON, self.choose_folder)
-        self.boxSizer.Add(folder_chooser)
+        self.boxSizer.Add(folder_chooser, flag=wx.LEFT|wx.TOP, border=5)
 
         start = wx.Button(self.panel, label="start")
         start.Bind(wx.EVT_BUTTON, self.StartCornerDetection)
-        self.boxSizer.Add(start)
+        self.boxSizer.Add(start, flag=wx.LEFT|wx.TOP, border=5)
 
         self.imgSizer = wx.BoxSizer(wx.VERTICAL)
-        self.boxSizer.Add(self.imgSizer)
+        self.boxSizer.Add(self.imgSizer,flag=wx.LEFT|wx.TOP, border=5)
 
         self.boxSizer.Fit(self.panel)
 

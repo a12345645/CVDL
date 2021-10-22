@@ -1,1 +1,2 @@
-wxPython
+wxPython == 4.0.4
+opencv-python == 4.5.3.56

@@ -24,6 +24,11 @@ class CameraCalibration(wx.Panel):
         corner_detection.Bind(wx.EVT_BUTTON, self.CornerDetection)
         boxsizer.Add(corner_detection, flag=wx.LEFT|wx.TOP, border=5)
 
+        corner_detection = wx.Button(self, label="1.2 Find Intrinsic ")
+        corner_detection.Bind(wx.EVT_BUTTON, self.CornerDetection)
+        boxsizer.Add(corner_detection, flag=wx.LEFT|wx.TOP, border=5)
+
+
         boxsizer.Add(wx.CheckBox(self, label="Generate Default Constructor"),
             flag=wx.LEFT, border=5)
 
