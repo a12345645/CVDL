@@ -1,11 +1,7 @@
-from numpy.core.fromnumeric import size
 import wx
 import os
 import cv2
 import numpy as np
-import pprint
-
-from wx.core import PREVIEW_DEFAULT
 
 class AugmentedReality (wx.Panel):
 

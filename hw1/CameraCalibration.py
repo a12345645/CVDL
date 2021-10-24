@@ -27,16 +27,16 @@ class CameraCalibration(wx.Panel):
         def CornerDetection(event):
             self.FindCorners()
 
-        corner_detection = wx.Button(self, label="1.1 Find Corners ")
-        corner_detection.Bind(wx.EVT_BUTTON, CornerDetection)
-        boxsizer.Add(corner_detection, flag=wx.LEFT|wx.TOP, border=5)
+        btn1 = wx.Button(self, label="1.1 Find Corners ")
+        btn1.Bind(wx.EVT_BUTTON, CornerDetection)
+        boxsizer.Add(btn1, flag=wx.LEFT|wx.TOP, border=5)
 
         def IntrinsicMatrix(event):
             self.FindIntrinsic()
 
-        corner_detection = wx.Button(self, label="1.2 Find Intrinsic ")
-        corner_detection.Bind(wx.EVT_BUTTON, IntrinsicMatrix)
-        boxsizer.Add(corner_detection, flag=wx.LEFT|wx.TOP, border=5)
+        btn2 = wx.Button(self, label="1.2 Find Intrinsic ")
+        btn2.Bind(wx.EVT_BUTTON, IntrinsicMatrix)
+        boxsizer.Add(btn2, flag=wx.LEFT|wx.TOP, border=5)
 
         def ExtrinsicMatrix(event):
             self.FindExtrinsic()
