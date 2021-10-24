@@ -14,8 +14,8 @@ class AugmentedReality (wx.Panel):
         wx.Panel.__init__(self, parent)
         
         libpath = './Dataset_CvDl_Hw1/Q2_Image/Q2_lib/'
-        self.onboard = cv2.FileStorage(libpath + "alphabet_lib_onboard.txt", cv2.FILE_STORAGE_READ)
-        self.vertical = cv2.FileStorage(libpath + "alphabet_lib_vertical.txt", cv2.FILE_STORAGE_READ)
+        onboard = cv2.FileStorage(libpath + "alphabet_lib_onboard.txt", cv2.FILE_STORAGE_READ)
+        vertical = cv2.FileStorage(libpath + "alphabet_lib_vertical.txt", cv2.FILE_STORAGE_READ)
 
         self.img = []
         self.path = ''
@@ -31,7 +31,7 @@ class AugmentedReality (wx.Panel):
         boxsizer = wx.StaticBoxSizer(sb, wx.VERTICAL)
 
         def OnBoard(event):
-            self.OnBoard()
+            self.ShowWord(onboard)
 
         self.thetext = wx.TextCtrl(self)
         boxsizer.Add(self.thetext, flag=wx.LEFT|wx.TOP, border= 5)
@@ -40,15 +40,12 @@ class AugmentedReality (wx.Panel):
         corner_detection.Bind(wx.EVT_BUTTON, OnBoard)
         boxsizer.Add(corner_detection, flag=wx.LEFT|wx.TOP, border=5)
 
-        def IntrinsicMatrix(event):
-            self.FindIntrinsic()
+        def Vertically(event):
+            self.ShowWord(vertical)
 
         corner_detection = wx.Button(self, label="2.2 Show Words Vertically ")
-        corner_detection.Bind(wx.EVT_BUTTON, IntrinsicMatrix)
+        corner_detection.Bind(wx.EVT_BUTTON, Vertically)
         boxsizer.Add(corner_detection, flag=wx.LEFT|wx.TOP, border=5)
-
-        def ExtrinsicMatrix(event):
-            self.FindExtrinsic()
 
         self.rSizer.Add(boxsizer, pos=(0, 0), span=(1, 5),
             flag=wx.EXPAND|wx.TOP|wx.LEFT|wx.RIGHT , border=5)
@@ -66,7 +63,7 @@ class AugmentedReality (wx.Panel):
         self.ldownSizer = wx.BoxSizer(wx.VERTICAL)
         self.lSizer.Add(self.ldownSizer)
 
-    def OnBoard(self):
+    def ShowWord(self, alphabetLib):
         if(self.img == []):
             return
 
@@ -94,7 +91,7 @@ class AugmentedReality (wx.Panel):
             tvec = self.tvecs[n] # translation vector
 
             def DrowWord(t, n):
-                Word = self.onboard.getNode(t).mat()
+                Word = alphabetLib.getNode(t).mat()
 
                 xpost = (n % 4) * 3
                 ypost = int(n / 4) * 3
