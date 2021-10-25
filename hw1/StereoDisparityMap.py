@@ -2,6 +2,7 @@ import wx
 import os
 import cv2
 import numpy as np
+from wx.core import BoxSizer
 
 
 class StereoDisparityMap (wx.Panel):
@@ -100,7 +101,7 @@ class StereoDisparityMap (wx.Panel):
         img = stereo.compute(imgL, imgR)
         img = cv2.normalize(img, img, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
 
-        self.ldownSizer.Clear()
+        self.ldownSizer.Clear(True)
 
         img_height, img_width = img.shape[:2]
 
@@ -118,11 +119,102 @@ class StereoDisparityMap (wx.Panel):
 
         self.ldownSizer.Fit(self)
         self.Fit()
+    def Checking(self):
+        pathL = self.imLtext.GetLabelText()
+        pathR = self.imRtext.GetLabelText()
+        #pathL = pathR= './Dataset_CvDl_Hw1/Q2_Image/1.bmp'
+
+        if pathR == '' or pathL == '' :
+            return
+
+        imgL = cv2.imread(pathL)
+        imgR = cv2.imread(pathR)
+
+        def resize(img):
+            img_height, img_width = img.shape[:2]
+            img_height = img_height - img_height % 256
+            img_width = img_width - img_width % 256
+            img = cv2.resize(img, (img_height, img_width), interpolation=cv2.INTER_AREA)
+            return img
+
+        imgL = resize(imgL)
+        imgR = resize(imgR)
+
+        stereo = cv2.StereoBM_create(numDisparities=256, blockSize=25)
+
+        imgLgray = cv2.cvtColor(imgL, cv2.COLOR_BGR2GRAY)
+        imgRgray = cv2.cvtColor(imgR, cv2.COLOR_BGR2GRAY)
+        disp  = stereo.compute(imgLgray, imgRgray)
+
+        self.ldownSizer.Clear(True)
+        Box = wx.BoxSizer(wx.HORIZONTAL)
+        self.ldownSizer.Add(Box)
+
+        # imgL
+        imgL = cv2.cvtColor(imgL, cv2.COLOR_BGR2RGB)
+        img_height, img_width = imgL.shape[:2]
+
+        img_height = int(img_height/ 4)
+        img_width = int(img_width/ 4)
+        imgLshow = cv2.resize(imgL, (img_height, img_width), interpolation=cv2.INTER_AREA)
+
+        img_height, img_width = imgLshow.shape[:2]
+
+        pic = wx.Bitmap.FromBuffer(img_width, img_height, imgLshow)
+            
+        bmpL =  wx.StaticBitmap(self, -1, pic)
+        Box.Add(bmpL)
+
+        # imgR
+        imgR = cv2.cvtColor(imgR, cv2.COLOR_BGR2RGB)
+        img_height, img_width = imgR.shape[:2]
+
+        img_height = int(img_height/ 4)
+        img_width = int(img_width/ 4)
+        imgRshow = cv2.resize(imgR, (img_height, img_width), interpolation=cv2.INTER_AREA)
+
+        img_height, img_width = imgRshow.shape[:2]
+
+        pic = wx.Bitmap.FromBuffer(img_width, img_height, imgRshow)
+            
+        bmpR =  wx.StaticBitmap(self, -1, pic)
+        Box.Add(bmpR)
+
+        def on_clic(event):
+            x, y=event.GetPosition()
+            x *= 4
+            y *= 4
+            dist = disp[x][y]
+
+            img = imgR.copy()
+
+            img = cv2.circle(img, (x + dist, y), 10, (0,0,255), 10)
+            print((x + dist, y),dist)
+            
+
+            img_height, img_width = img.shape[:2]
+
+            img_height = int(img_height/ 4)
+            img_width = int(img_width/ 4)
+            img = cv2.resize(img, (img_height, img_width), interpolation=cv2.INTER_AREA)
+
+            img_height, img_width = img.shape[:2]
+
+            pic = wx.Bitmap.FromBuffer(img_width, img_height, img)
+                
+            bmpR.SetBitmap(pic)
+            self.ldownSizer.Fit(self)
+            self.Fit()
+
+
+        bmpL.Bind(wx.EVT_LEFT_DOWN, on_clic)
+
+        self.ldownSizer.Fit(self)
+        self.Fit()
 
     def choose_filer(self, text):
 
-        wildcard = "PNG files (*.png)|*.png|BMP files (*.bmp)|*.bmp\
-                    |JPG files (*.jpg)|*.jpg"
+        wildcard = "PNG files (*.png)|*.png|BMP files (*.bmp)|*.bmp|JPG files (*.jpg)|*.jpg"
         filer = wx.FileDialog(self, "Open XYZ file", wildcard=wildcard,
                        style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
 
