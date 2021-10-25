@@ -1,6 +1,7 @@
 import wx
 import os
 import cv2
+import numpy as np
 
 
 class StereoDisparityMap (wx.Panel):
@@ -74,33 +75,42 @@ class StereoDisparityMap (wx.Panel):
     def StereoDisparity(self):
         pathL = self.imLtext.GetLabelText()
         pathR = self.imRtext.GetLabelText()
+        #pathL = pathR= './Dataset_CvDl_Hw1/Q2_Image/1.bmp'
 
         if pathR == '' or pathL == '' :
             return
 
         imgL = cv2.imread(pathL)
         imgR = cv2.imread(pathR)
+        imgL = cv2.cvtColor(imgL, cv2.COLOR_BGR2GRAY)
+        imgR = cv2.cvtColor(imgR, cv2.COLOR_BGR2GRAY)
 
-        imgL=cv2.cvtColor(imgL, cv2.COLOR_BGR2GRAY)
-        imgR=cv2.cvtColor(imgR, cv2.COLOR_BGR2GRAY)
+        def resize(img):
+            img_height, img_width = img.shape[:2]
+            img_height = img_height - img_height % 256
+            img_width = img_width - img_width % 256
+            img = cv2.resize(img, (img_height, img_width), interpolation=cv2.INTER_AREA)
+            return img
 
-        stereo = cv2.StereoBM_create()
+        imgL = resize(imgL)
+        imgR = resize(imgR)
+
+        stereo = cv2.StereoBM_create(numDisparities=256, blockSize=25)
 
         img = stereo.compute(imgL, imgR)
+        img = cv2.normalize(img, img, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
 
         self.ldownSizer.Clear()
 
         img_height, img_width = img.shape[:2]
+
         img_height = int(img_height/ 3)
         img_width = int(img_width/ 3)
         img = cv2.resize(img, (img_height, img_width), interpolation=cv2.INTER_AREA)
 
-        cv2.imshow('My Image', img)
+        img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB) # FromBuffer have BGR
+        img_height, img_width = img.shape[:2]
 
-        # 按下任意鍵則關閉所有視窗
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
-        
         pic = wx.Bitmap.FromBuffer(img_width, img_height, img)
             
         bmp =  wx.StaticBitmap(self, -1, pic)
