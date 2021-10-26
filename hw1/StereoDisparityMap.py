@@ -145,6 +145,15 @@ class StereoDisparityMap (wx.Panel):
         imgLgray = cv2.cvtColor(imgL, cv2.COLOR_BGR2GRAY)
         imgRgray = cv2.cvtColor(imgR, cv2.COLOR_BGR2GRAY)
         disp  = stereo.compute(imgLgray, imgRgray)
+        disp = cv2.normalize(disp, disp, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
+
+        img_height, img_width = disp.shape[:2]
+        print(disp.shape[:2])
+
+        img_height = int(img_height/ 4)
+        img_width = int(img_width/ 4)
+        disp = cv2.resize(disp, (img_height, img_width), interpolation=cv2.INTER_AREA)
+        print(disp.shape[:2])
 
         self.ldownSizer.Clear(True)
         Box = wx.BoxSizer(wx.HORIZONTAL)
@@ -179,24 +188,24 @@ class StereoDisparityMap (wx.Panel):
             
         bmpR =  wx.StaticBitmap(self, -1, pic)
         Box.Add(bmpR)
+        
 
         def on_clic(event):
             x, y=event.GetPosition()
-            x *= 4
-            y *= 4
-            dist = disp[x][y]
+            print(x,y)
+            dist = int(disp[y][x] / 4)
 
-            img = imgR.copy()
+            img = imgRshow.copy()
 
-            img = cv2.circle(img, (x + dist, y), 10, (0,0,255), 10)
-            print((x + dist, y),dist)
+            img = cv2.circle(img, (x - dist, y), 5, (0,0,255), 10)
+            print(img.shape[:2])
+            #print((x - dist, y),dist)
             
+            # cv2.imshow('My Image', img)
 
-            img_height, img_width = img.shape[:2]
-
-            img_height = int(img_height/ 4)
-            img_width = int(img_width/ 4)
-            img = cv2.resize(img, (img_height, img_width), interpolation=cv2.INTER_AREA)
+            # 按下任意鍵則關閉所有視窗
+            # cv2.waitKey(0)
+            # cv2.destroyAllWindows()
 
             img_height, img_width = img.shape[:2]
 
