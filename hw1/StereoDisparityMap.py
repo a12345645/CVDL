@@ -2,8 +2,6 @@ import wx
 import os
 import cv2
 import numpy as np
-from wx.core import BoxSizer
-
 
 class StereoDisparityMap (wx.Panel):
 
@@ -122,7 +120,6 @@ class StereoDisparityMap (wx.Panel):
     def Checking(self):
         pathL = self.imLtext.GetLabelText()
         pathR = self.imRtext.GetLabelText()
-        #pathL = pathR= './Dataset_CvDl_Hw1/Q2_Image/1.bmp'
 
         if pathR == '' or pathL == '' :
             return
@@ -148,12 +145,10 @@ class StereoDisparityMap (wx.Panel):
         disp = cv2.normalize(disp, disp, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
 
         img_height, img_width = disp.shape[:2]
-        print(disp.shape[:2])
 
         img_height = int(img_height/ 4)
         img_width = int(img_width/ 4)
         disp = cv2.resize(disp, (img_height, img_width), interpolation=cv2.INTER_AREA)
-        print(disp.shape[:2])
 
         self.ldownSizer.Clear(True)
         Box = wx.BoxSizer(wx.HORIZONTAL)
@@ -192,20 +187,12 @@ class StereoDisparityMap (wx.Panel):
 
         def on_clic(event):
             x, y=event.GetPosition()
-            print(x,y)
+
             dist = int(disp[y][x] / 4)
 
             img = imgRshow.copy()
 
             img = cv2.circle(img, (x - dist, y), 5, (0,0,255), 10)
-            print(img.shape[:2])
-            #print((x - dist, y),dist)
-            
-            # cv2.imshow('My Image', img)
-
-            # 按下任意鍵則關閉所有視窗
-            # cv2.waitKey(0)
-            # cv2.destroyAllWindows()
 
             img_height, img_width = img.shape[:2]
 
