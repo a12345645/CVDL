@@ -8,7 +8,7 @@ from SIFT import SIFT
 
 if __name__ == '__main__':
     app = wx.App(False)
-    frame = wx.Frame(None, title="2021 Opencvdl Hw1", size = (1200, 1000))
+    frame = wx.Frame(None, title="2021 Opencvdl Hw1", size = (2000, 1000))
     nb = wx.Notebook(frame)
     nb.AddPage(CameraCalibration(nb),"1.Camera Calibration")
     nb.AddPage(AugmentedReality(nb),"2.Augmented Reality")
