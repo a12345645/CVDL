@@ -147,70 +147,31 @@ class SIFT(wx.Panel):
         if path1 == '' or path2 == '' :
             return
         
-        sift = cv2.xfeatures2d.SIFT_create()
 
-        img1 = cv2.imread(path1)
-        gray1 = cv2.cvtColor(img1,cv2.COLOR_BGR2GRAY)
-        kp1 = sift.detect(gray1,None)
+        img1 = cv2.imread(path1, 0)
+        img2 = cv2.imread(path2, 0)
 
-        kp1 = sorted(kp1, key = lambda kp : kp.size,reverse=True)
+        orb = cv2.ORB_create()
 
-        if(len(kp1) > 200):
-            kp1 = kp1[:200]
-
-        img1=cv2.drawKeypoints(gray1,kp1,img1)
-
-        img2 = cv2.imread(path2)
-        gray2 = cv2.cvtColor(img2,cv2.COLOR_BGR2GRAY)
-        kp2 = sift.detect(gray2,None)
-
-        kp2 = sorted(kp2, key = lambda kp : kp.size,reverse=True)
-
-        if(len(kp2) > 200):
-            kp2 = kp2[:200]
-
-        img2=cv2.drawKeypoints(gray2,kp2,img1)
+        kp1, des1 = orb.detectAndCompute(img1,None)
+        kp2, des2 = orb.detectAndCompute(img2,None)
 
 
+        bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
 
-        (kpsA, featuresA) = self.ROOTSIFT(gray1, kp1)
 
-        (kpsB, featuresB) = self.ROOTSIFT(gray2, kp2)
+        matches = bf.match(des1,des2)
 
-        matcher = cv2.DescriptorMatcher_create('BruteForce')
-        rawMatches = matcher.knnMatch(featuresA, featuresB, 2)
+        matches = sorted(matches, key = lambda x:x.distance)
 
-        matches = []
-        for m in rawMatches:
+        img3 = cv2.drawMatches(img1,kp1,img2,kp2,matches[:200], flags=2, outImg = 
+        None)
 
-            if len(m) == 2 and m[0].distance < m[1].distance * 0.8:
-
-                matches.append((m[0].trainIdx, m[0].queryIdx))
-
-        (hA, wA) = img1.shape[:2]
-
-        (hB, wB) = img2.shape[:2]
-
-        vis = np.zeros((max(hA, hB), wA + wB, 3), dtype='uint8')
-
-        vis[0:hA, 0:wA] = img1
-
-        vis[0:hB, wA:] = img2
-
-        for (trainIdx, queryIdx) in matches:
-
-            color = np.random.randint(0, high=255, size=(3,))
-
-            ptA = (int(kpsA[queryIdx].pt[0]), int(kpsA[queryIdx].pt[1]))
-
-            ptB = (int(kpsB[trainIdx].pt[0] + wA), int(kpsB[trainIdx].pt[1]))
-
-            cv2.line(vis, ptA, ptB, color, 2)
-
+        
         self.ldownSizer.Clear(True)
 
-        img_height, img_width = vis.shape[:2]
-        pic = wx.Bitmap.FromBuffer(img_width, img_height, vis)
+        img_height, img_width = img3.shape[:2]
+        pic = wx.Bitmap.FromBuffer(img_width, img_height, img3)
         bmp1 =  wx.StaticBitmap(self, -1, pic)
         self.ldownSizer.Add(bmp1)
 

@@ -41,7 +41,7 @@ class CameraCalibration(wx.Panel):
         def ExtrinsicMatrix(event):
             self.FindExtrinsic()
 
-        corner_detection = wx.Button(self, label="1.2 Find Extrinsic ")
+        corner_detection = wx.Button(self, label="1.3 Find Extrinsic ")
         corner_detection.Bind(wx.EVT_BUTTON, ExtrinsicMatrix)
         boxsizer.Add(corner_detection, flag=wx.LEFT|wx.TOP, border=5)
 
@@ -51,13 +51,6 @@ class CameraCalibration(wx.Panel):
         corner_detection = wx.Button(self, label="1.4 Find Distortion  ")
         corner_detection.Bind(wx.EVT_BUTTON, Distortion)
         boxsizer.Add(corner_detection, flag=wx.LEFT|wx.TOP, border=5)
-
-
-        boxsizer.Add(wx.CheckBox(self, label="Generate Default Constructor"),
-            flag=wx.LEFT, border=5)
-
-        boxsizer.Add(wx.CheckBox(self, label="Generate Main Method"),
-            flag=wx.LEFT|wx.BOTTOM, border=5)
 
         self.rSizer.Add(boxsizer, pos=(0, 0), span=(1, 5),
             flag=wx.EXPAND|wx.TOP|wx.LEFT|wx.RIGHT , border=5)
@@ -115,7 +108,7 @@ class CameraCalibration(wx.Panel):
         for i in self.imgDict.keys():
             btn = wx.Button(self, label=i)
 
-            img, corners2, ret = self.imgDict[i]
+            img, corners2, ret, _ = self.imgDict[i]
             btn.img = img
             btn.corners2 = corners2
             btn.ret = ret
@@ -141,12 +134,36 @@ class CameraCalibration(wx.Panel):
         self.ldownSizer.Clear(True)
         self.mode = 3
 
+        mainSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.ldownSizer.Add(mainSizer,flag=wx.LEFT|wx.TOP, border=5)
+
+        btnSizer = wx.BoxSizer(wx.VERTICAL)
+        mainSizer.Add(btnSizer,flag=wx.LEFT|wx.TOP, border=5)
+
         self.textBox =wx.TextCtrl(parent = self,style = wx.TE_MULTILINE, size = (400,300))
-        self.ldownSizer.Add(self.textBox)
+        mainSizer.Add(self.textBox)
 
-        cv2.FindExtrinsicCameraParams2()
-        # self.textBox.SetLabel('distortion Matrix :' + pprint.pformat(self.dist))
+        def ShowExt(event):
+            rvec = event.GetEventObject().rvec
+            tvec = event.GetEventObject().tvec
 
+            rvec = cv2.Rodrigues(rvec)
+
+            self.textBox.SetLabel('Extrinsic Matrix :' + pprint.pformat(np.append(rvec[0],tvec,axis=1)))
+            self.textBox.SetSize(wx.Size(400,300))
+            self.ldownSizer.Fit(self)
+            self.Fit() 
+
+        for i in self.imgDict.keys():
+            btn = wx.Button(self, label=i)
+
+            _, _, _, index = self.imgDict[i]
+            btn.rvec = self.rvecs[index]
+            btn.tvec = self.tvecs[index]
+
+            btn.Bind(wx.EVT_BUTTON, ShowExt)
+            btnSizer.Add(btn)
+        
         self.ldownSizer.Fit(self)
         self.Fit()
 
@@ -199,6 +216,7 @@ class CameraCalibration(wx.Panel):
         objpoints = [] # 3d point in real world space
         imgpoints = [] # 2d points in image plane.
         self.imgDict = {}
+        index = 0
 
         for fname in images:
             img = cv2.imread(fname)
@@ -212,6 +230,7 @@ class CameraCalibration(wx.Panel):
                 imgpoints.append(corners)
 
                 name = fname.split('/')[-1].split('\\')[-1]
-                self.imgDict[name] = (img, corners2, ret)
+                self.imgDict[name] = (img, corners2, ret, index)
+                index += 1
 
-        ret, self.mtx, self.dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
+        ret, self.mtx, self.dist, self.rvecs, self.tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
