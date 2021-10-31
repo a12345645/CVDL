@@ -157,9 +157,7 @@ class SIFT(wx.Panel):
         kp2, des2 = orb.detectAndCompute(img2,None)
 
 
-        bf = cv2.BFMatcher()
-
-
+        bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
         matches = bf.match(des1,des2)
 
         matches = sorted(matches, key = lambda x:x.distance)

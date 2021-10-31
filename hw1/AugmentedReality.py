@@ -10,8 +10,8 @@ class AugmentedReality (wx.Panel):
         wx.Panel.__init__(self, parent)
         
         libpath = './Dataset_CvDl_Hw1/Q2_Image/Q2_lib/'
-        onboard = cv2.FileStorage(libpath + "alphabet_lib_onboard.txt", cv2.FILE_STORAGE_READ)
-        vertical = cv2.FileStorage(libpath + "alphabet_lib_vertical.txt", cv2.FILE_STORAGE_READ)
+        onboard = cv2.FileStorage('alphabet_lib_onboard.txt', cv2.FILE_STORAGE_READ)
+        vertical = cv2.FileStorage('alphabet_lib_vertical.txt', cv2.FILE_STORAGE_READ)
 
         self.img = []
         self.path = ''
