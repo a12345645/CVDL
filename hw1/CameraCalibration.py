@@ -14,6 +14,8 @@ class CameraCalibration(wx.Panel):
 
         self.mode = 0
 
+        self.imgDict = {}
+
         self.mainbox = wx.BoxSizer(wx.HORIZONTAL) 
         self.SetSizer(self.mainbox)
 
@@ -48,8 +50,15 @@ class CameraCalibration(wx.Panel):
         def Distortion(event):
             self.FindDistortion()
 
-        corner_detection = wx.Button(self, label="1.4 Find Distortion  ")
+        corner_detection = wx.Button(self, label="1.4 Find Distortion ")
         corner_detection.Bind(wx.EVT_BUTTON, Distortion)
+        boxsizer.Add(corner_detection, flag=wx.LEFT|wx.TOP, border=5)
+
+        def Undistorted(event):
+            self.ShowResult()
+
+        corner_detection = wx.Button(self, label="1.5 Show the undistorted result ")
+        corner_detection.Bind(wx.EVT_BUTTON, Undistorted)
         boxsizer.Add(corner_detection, flag=wx.LEFT|wx.TOP, border=5)
 
         self.rSizer.Add(boxsizer, pos=(0, 0), span=(1, 5),
@@ -179,7 +188,67 @@ class CameraCalibration(wx.Panel):
         self.ldownSizer.Fit(self)
         self.Fit()
 
-    
+    def ShowResult(self):
+        self.ldownSizer.Clear(True)
+        self.mode = 5
+
+        mainSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.ldownSizer.Add(mainSizer,flag=wx.LEFT|wx.TOP, border=5)
+
+        btnSizer = wx.BoxSizer(wx.VERTICAL)
+        mainSizer.Add(btnSizer,flag=wx.LEFT|wx.TOP, border=5)
+
+        imgSizer = wx.BoxSizer(wx.HORIZONTAL)
+        mainSizer.Add(imgSizer,flag=wx.LEFT|wx.TOP, border=5)
+
+        def ShowImg(event):
+            img = event.GetEventObject().img
+
+            imgSizer.Clear(True)
+
+            h,  w = img.shape[:2]
+            newcameramtx, roi = cv2.getOptimalNewCameraMatrix(self.mtx, self.dist, (w,h), 1, (w,h))
+            dst = cv2.undistort(img, self.mtx, self.dist, None, newcameramtx)
+
+            img_height, img_width = dst.shape[:2]
+            img_height = int(img_height/ 3)
+            img_width = int(img_width/ 3)
+            dst = cv2.resize(dst, (img_height, img_width), interpolation=cv2.INTER_AREA)
+
+            dst = cv2.cvtColor(dst,cv2.COLOR_BGR2RGB)
+
+            pic = wx.Bitmap.FromBuffer(img_width, img_height, dst)
+            
+            bmp =  wx.StaticBitmap(self, -1, pic)
+            imgSizer.Add(bmp)
+
+            img_height, img_width = img.shape[:2]
+            img_height = int(img_height/ 3)
+            img_width = int(img_width/ 3)
+            img = cv2.resize(img, (img_height, img_width), interpolation=cv2.INTER_AREA)
+
+            img = cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
+
+            pic = wx.Bitmap.FromBuffer(img_width, img_height, img)
+            
+            bmp =  wx.StaticBitmap(self, -1, pic)
+            imgSizer.Add(bmp)
+
+            self.ldownSizer.Fit(self)
+            self.Fit()
+
+
+        for i in self.imgDict.keys():
+            btn = wx.Button(self, label=i)
+
+            img, _, _, _ = self.imgDict[i]
+            btn.img = img.copy()
+
+            btn.Bind(wx.EVT_BUTTON, ShowImg)
+            btnSizer.Add(btn)
+
+        self.ldownSizer.Fit(self)
+        self.Fit()
 
     def choose_folder(self, event):
 
@@ -200,8 +269,12 @@ class CameraCalibration(wx.Panel):
             self.FindCorners()
         elif self.mode == 2:
             self.FindIntrinsic()
+        elif self.mode == 3:
+            self.FindExtrinsic()
         elif self.mode == 4:
             self.FindDistortion()
+        elif self.mode == 5:
+            self.ShowResult()
 
     def Execute(self):
         fileExt = (r".jpg", r".bmp", r".png", r'jpeg')
@@ -215,7 +288,7 @@ class CameraCalibration(wx.Panel):
         # Arrays to store object points and image points from all the images.
         objpoints = [] # 3d point in real world space
         imgpoints = [] # 2d points in image plane.
-        self.imgDict = {}
+        
         index = 0
 
         for fname in images:

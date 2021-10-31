@@ -157,14 +157,17 @@ class SIFT(wx.Panel):
         kp2, des2 = orb.detectAndCompute(img2,None)
 
 
-        bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
+        bf = cv2.BFMatcher()
 
 
         matches = bf.match(des1,des2)
 
         matches = sorted(matches, key = lambda x:x.distance)
 
-        img3 = cv2.drawMatches(img1,kp1,img2,kp2,matches[:200], flags=2, outImg = 
+        img1=cv2.drawKeypoints(img1,kp1[:200],img1)
+        img2=cv2.drawKeypoints(img2,kp2[:200],img1)
+
+        img3 = cv2.drawMatches(img1,kp1,img2,kp2,matches[:100], flags=2, outImg = 
         None)
 
         
@@ -177,6 +180,57 @@ class SIFT(wx.Panel):
 
         self.ldownSizer.Fit(self)
         self.Fit()
+
+    def WarpImages(self):
+
+        path1 = self.image1.GetLabelText()
+        path2 = self.image2.GetLabelText()
+
+        if path1 == '' or path2 == '' :
+            return
+        
+
+        img1 = cv2.imread(path1, 0)
+        img2 = cv2.imread(path2, 0)
+        
+        orb = cv2.ORB_create()
+
+        kp1, des1 = orb.detectAndCompute(img1,None)
+        kp2, des2 = orb.detectAndCompute(img2,None)
+
+
+        bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
+        matches = bf.match(des2,des1)
+
+        matches = sorted(matches, key = lambda x:x.distance)
+
+        src_pts = np.float32([ kp2[m.queryIdx].pt for m in matches ]).reshape(-1,1,2)
+        dst_pts = np.float32([ kp1[m.trainIdx].pt for m in matches ]).reshape(-1,1,2)
+
+        H, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC,5.0)
+        warp=cv2.warpPerspective(img2, H, (2*img1.shape[1],2*img1.shape[0]))
+
+        warp[:img1.shape[0],:img1.shape[1]]=img1
+
+        warp = np.asarray(warp, dtype=np.uint8)
+
+        rows, cols = np.where(warp !=0)
+        max_row = max(rows) + 1
+        max_col = max(cols) + 1
+        warp = warp[:max_row,:max_col]
+
+        warp = cv2.cvtColor(warp,cv2.COLOR_GRAY2RGB)
+        
+        self.ldownSizer.Clear(True)
+
+        img_height, img_width = warp.shape[:2]
+        pic = wx.Bitmap.FromBuffer(img_width, img_height, warp)
+        bmp1 =  wx.StaticBitmap(self, -1, pic)
+        self.ldownSizer.Add(bmp1)
+
+        self.ldownSizer.Fit(self)
+        self.Fit()
+
 
     def choose_filer(self, text):
 
