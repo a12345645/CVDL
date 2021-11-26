@@ -66,7 +66,7 @@ class Transforms(wx.Panel):
         img = cv2.imread('./Dataset_OpenCvDl_Hw1/Q4_Image/SQUARE-01.png')
         img = cv2.resize(img, (256, 256))
 
-        M = np.float32([[1,0,0],[0,1,60]])
+        M = np.float32([[1, 0, 0],[0, 1, 60]])
 
         img = cv2.warpAffine(img, M, (400, 300))
 
@@ -78,7 +78,7 @@ class Transforms(wx.Panel):
         img = cv2.imread('./Dataset_OpenCvDl_Hw1/Q4_Image/SQUARE-01.png')
         img = cv2.resize(img, (256, 256))
 
-        H = np.float32([[1,0,0],[0,1,60]])
+        H = np.float32([[1, 0, 0],[0, 1, 60]])
         img = cv2.warpAffine(img, H, (400, 300))
 
         M = cv2.getRotationMatrix2D((128, 188), 10, 0.5) 
@@ -91,7 +91,7 @@ class Transforms(wx.Panel):
         img = cv2.imread('./Dataset_OpenCvDl_Hw1/Q4_Image/SQUARE-01.png')
         img = cv2.resize(img, (256, 256))
 
-        H = np.float32([[1,0,0],[0,1,60]])
+        H = np.float32([[1, 0, 0],[0, 1, 60]])
         img = cv2.warpAffine(img, H, (400, 300))
 
         M = cv2.getRotationMatrix2D((128, 188), 10, 0.5) 
